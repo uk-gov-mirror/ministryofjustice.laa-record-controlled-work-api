@@ -1,6 +1,6 @@
 const STAGING_ORIGIN =
   "https://laa-record-controlled-work-api-staging.cloud-platform.service.justice.gov.uk";
-const OAUTH_ACCESS_TOKEN = "$oauth2.applications-token.access_token";
+const OAUTH_VARIABLE_REFERENCE = "$oauth2.applications-token.access_token";
 const A_OFFICE_CODES = ["0R125Q"];
 const UUID_PATTERN = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 
@@ -96,7 +96,7 @@ function assertCurrentAApplication(bru) {
 function assertARequest(bru, request, requiresFixture, requiresFirmVerification) {
   assertStagingDestination(bru.getEnvName(), request.getUrl());
   assertExpectedOffices(
-    bru.getOauth2CredentialVar(OAUTH_ACCESS_TOKEN),
+    bru.getOauth2CredentialVar(OAUTH_VARIABLE_REFERENCE),
     A_OFFICE_CODES
   );
   if (requiresFixture) {
