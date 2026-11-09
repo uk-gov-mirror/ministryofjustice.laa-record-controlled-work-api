@@ -3,7 +3,7 @@ plugins {
     id 'uk.gov.justice.service.laa.laa-spring-boot-gradle-plugin'
     //    id 'io.sentry.jvm.gradle' version '6.5.0'
     id 'com.diffplug.spotless' version "8.10.4"
-    id 'au.com.dius.pact' version '4.7.5'
+    id 'au.com.dius.pact' version '4.7.6'
 }
 
 repositories {
