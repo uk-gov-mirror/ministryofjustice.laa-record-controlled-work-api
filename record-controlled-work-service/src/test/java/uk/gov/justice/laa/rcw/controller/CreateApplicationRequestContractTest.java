@@ -649,11 +649,10 @@ class CreateApplicationRequestContractTest {
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
     ObjectNode request =
         mapper.valueToTree(
-            CreateApplicationRequestGenerator.createWithName(
-                builder ->
-                    builder
-                        .legalAidLast6Months(true)
-                        .reasonForReapplication("A separate legal issue")));
+            CreateApplicationRequestGenerator.createWithName(builder ->
+                builder
+                    .legalAidLast6Months(true)
+                    .reasonForReapplication("A separate legal issue")));
     ((ObjectNode) request.path("clientDetails")).put("dateOfBirth", dateOfBirth);
     return post("/api/v1/applications")
         .contentType(MediaType.APPLICATION_JSON)
@@ -678,19 +677,18 @@ class CreateApplicationRequestContractTest {
     ObjectMapper mapper = new ObjectMapper();
     return Arrays.stream(resources)
         .sorted(Comparator.comparing(Resource::getFilename))
-        .map(
-            resource -> {
-              try (var input = resource.getInputStream()) {
-                JsonNode testCase = mapper.readTree(input);
-                return Arguments.of(
-                    testCase.path("id").asText(),
-                    testCase.path("dateOfBirth").asText(),
-                    testCase.path("fixedInstant").asText(),
-                    testCase.path("accepted").asBoolean());
-              } catch (IOException exception) {
-                throw new UncheckedIOException(exception);
-              }
-            });
+        .map(resource -> {
+          try (var input = resource.getInputStream()) {
+            JsonNode testCase = mapper.readTree(input);
+            return Arguments.of(
+                testCase.path("id").asText(),
+                testCase.path("dateOfBirth").asText(),
+                testCase.path("fixedInstant").asText(),
+                testCase.path("accepted").asBoolean());
+          } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
+          }
+        });
   }
 
   @Test
@@ -746,12 +744,11 @@ class CreateApplicationRequestContractTest {
     assertEquals(expectedRequest, actual, contractCaseId + " should preserve the complete request");
     expectedPreservedValues
         .fields()
-        .forEachRemaining(
-            expected ->
-                assertEquals(
-                    expected.getValue(),
-                    actual.at(expected.getKey()),
-                    contractCaseId + " should preserve " + expected.getKey()));
+        .forEachRemaining(expected ->
+            assertEquals(
+                expected.getValue(),
+                actual.at(expected.getKey()),
+                contractCaseId + " should preserve " + expected.getKey()));
   }
 
   @Test
@@ -775,10 +772,9 @@ class CreateApplicationRequestContractTest {
 
     verify(mockApplicationCreationService)
         .createApplication(
-            argThat(
-                actual ->
-                    firstName.equals(actual.getClientDetails().getFirstName())
-                        && lastName.equals(actual.getClientDetails().getLastName())));
+            argThat(actual ->
+                firstName.equals(actual.getClientDetails().getFirstName())
+                    && lastName.equals(actual.getClientDetails().getLastName())));
   }
 
   @Test
@@ -843,19 +839,18 @@ class CreateApplicationRequestContractTest {
     ObjectMapper mapper = new ObjectMapper();
     return Arrays.stream(resources)
         .sorted(Comparator.comparing(Resource::getFilename))
-        .map(
-            resource -> {
-              try (var input = resource.getInputStream()) {
-                JsonNode testCase = mapper.readTree(input);
-                return Arguments.of(
-                    testCase.path("id").asText(),
-                    testCase.path("operation").asText(),
-                    testCase.path("accepted").asBoolean(),
-                    requestFromContractCase(mapper, testCase),
-                    testCase.path("preserves"));
-              } catch (IOException exception) {
-                throw new UncheckedIOException(exception);
-              }
-            });
+        .map(resource -> {
+          try (var input = resource.getInputStream()) {
+            JsonNode testCase = mapper.readTree(input);
+            return Arguments.of(
+                testCase.path("id").asText(),
+                testCase.path("operation").asText(),
+                testCase.path("accepted").asBoolean(),
+                requestFromContractCase(mapper, testCase),
+                testCase.path("preserves"));
+          } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
+          }
+        });
   }
 }

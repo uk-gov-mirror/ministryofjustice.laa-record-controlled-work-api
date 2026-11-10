@@ -110,11 +110,10 @@ class ApplicationGatewayTest {
             eq(BEARER_TOKEN), eq(CORRELATION_ID), eq(ServiceNameConstants.SERVICE_NAME), any()))
         .thenThrow(datastoreException);
 
-    assertThatThrownBy(
-            () ->
-                applicationGateway.startApplication(
-                    officeCode,
-                    StartApplicationCommand.builder().providerOfficeCode(officeCode).build()))
+    assertThatThrownBy(() ->
+            applicationGateway.startApplication(
+                officeCode,
+                StartApplicationCommand.builder().providerOfficeCode(officeCode).build()))
         .isExactlyInstanceOf(expectedExceptionType)
         .hasMessage(expectedMessage)
         .cause()
@@ -228,10 +227,9 @@ class ApplicationGatewayTest {
         .isExactlyInstanceOf(ApplicationNotFoundException.class)
         .hasMessage(notFoundMessage())
         .satisfies(exception -> assertThat(exception).cause().isSameAs(datastoreFailure))
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationNotFoundException) exception).getReason())
-                    .isEqualTo("APPLICATION_NOT_FOUND"));
+        .satisfies(exception ->
+            assertThat(((ApplicationNotFoundException) exception).getReason())
+                .isEqualTo("APPLICATION_NOT_FOUND"));
   }
 
   @Test
@@ -243,10 +241,9 @@ class ApplicationGatewayTest {
     assertThatThrownBy(() -> applicationGateway.fetchApplicationDetails(APPLICATION_ID))
         .isExactlyInstanceOf(ApplicationUpstreamErrorException.class)
         .hasMessage("Datastore returned an invalid application version")
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationUpstreamErrorException) exception).getReason())
-                    .isEqualTo("DATASTORE_INVALID_APPLICATION_VERSION"));
+        .satisfies(exception ->
+            assertThat(((ApplicationUpstreamErrorException) exception).getReason())
+                .isEqualTo("DATASTORE_INVALID_APPLICATION_VERSION"));
   }
 
   @ParameterizedTest
@@ -260,10 +257,9 @@ class ApplicationGatewayTest {
         .isExactlyInstanceOf(ApplicationUpstreamErrorException.class)
         .hasMessage("Datastore returned an invalid application response")
         .satisfies(exception -> assertThat(exception).cause().isSameAs(malformedResponse))
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationUpstreamErrorException) exception).getReason())
-                    .isEqualTo("DATASTORE_INVALID_RESPONSE"));
+        .satisfies(exception ->
+            assertThat(((ApplicationUpstreamErrorException) exception).getReason())
+                .isEqualTo("DATASTORE_INVALID_RESPONSE"));
   }
 
   @Test
@@ -418,10 +414,9 @@ class ApplicationGatewayTest {
             eq(ServiceNameConstants.SERVICE_NAME),
             any());
 
-    assertThatThrownBy(
-            () ->
-                applicationGateway.updateDeclarationData(
-                    APPLICATION_ID, DeclarationCommand.builder().build()))
+    assertThatThrownBy(() ->
+            applicationGateway.updateDeclarationData(
+                APPLICATION_ID, DeclarationCommand.builder().build()))
         .isExactlyInstanceOf(expectedExceptionType)
         .hasMessage(expectedMessage)
         .cause()
@@ -504,10 +499,9 @@ class ApplicationGatewayTest {
             () -> applicationGateway.editApplication(APPLICATION_ID, editApplicationCommand()))
         .isExactlyInstanceOf(ApplicationUpstreamErrorException.class)
         .hasMessage("Datastore returned an invalid application version")
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationUpstreamErrorException) exception).getReason())
-                    .isEqualTo("DATASTORE_INVALID_APPLICATION_VERSION"));
+        .satisfies(exception ->
+            assertThat(((ApplicationUpstreamErrorException) exception).getReason())
+                .isEqualTo("DATASTORE_INVALID_APPLICATION_VERSION"));
   }
 
   @Test
@@ -524,10 +518,9 @@ class ApplicationGatewayTest {
             () -> applicationGateway.editApplication(APPLICATION_ID, editApplicationCommand()))
         .isExactlyInstanceOf(ApplicationUpstreamErrorException.class)
         .hasMessage("Datastore returned an invalid application version")
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationUpstreamErrorException) exception).getReason())
-                    .isEqualTo("DATASTORE_INVALID_APPLICATION_VERSION"));
+        .satisfies(exception ->
+            assertThat(((ApplicationUpstreamErrorException) exception).getReason())
+                .isEqualTo("DATASTORE_INVALID_APPLICATION_VERSION"));
   }
 
   @ParameterizedTest
@@ -571,10 +564,9 @@ class ApplicationGatewayTest {
             () -> applicationGateway.editApplication(APPLICATION_ID, editApplicationCommand()))
         .isInstanceOf(ApplicationConflictException.class)
         .satisfies(exception -> assertThat(exception).cause().isSameAs(datastoreFailure))
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationConflictException) exception).getReason())
-                    .isEqualTo(expectedReason));
+        .satisfies(exception ->
+            assertThat(((ApplicationConflictException) exception).getReason())
+                .isEqualTo(expectedReason));
   }
 
   private static EditApplicationCommand editApplicationCommand() {

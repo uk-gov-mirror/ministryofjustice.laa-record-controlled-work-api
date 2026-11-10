@@ -100,11 +100,10 @@ class ApplicationControllerTest {
     List<ApplicationOverview> applications =
         List.of(
             ApplicationOverviewGenerator.create(null),
-            ApplicationOverviewGenerator.create(
-                    b ->
-                        b.id(UUID.fromString("b2c3d4e5-f6a7-8901-bcde-f12345678901"))
-                            .name("Other Random Name")
-                            .modifiedAt(OffsetDateTime.now()))
+            ApplicationOverviewGenerator.create(b ->
+                    b.id(UUID.fromString("b2c3d4e5-f6a7-8901-bcde-f12345678901"))
+                        .name("Other Random Name")
+                        .modifiedAt(OffsetDateTime.now()))
                 .applicationRefNumber("CW-222222"));
 
     when(mockApplicationQueryService.getApplications(any(), any(), any(), any(), any()))
@@ -862,10 +861,9 @@ class ApplicationControllerTest {
     verify(mockApplicationEvidenceService)
         .updateEvidence(
             eq(applicationId),
-            argThat(
-                b ->
-                    "EXEMPT".equals(b.getEvidenceExemptionCode())
-                        && "reason".equals(b.getEvidenceExemptionReason())));
+            argThat(b ->
+                "EXEMPT".equals(b.getEvidenceExemptionCode())
+                    && "reason".equals(b.getEvidenceExemptionReason())));
   }
 
   @Test

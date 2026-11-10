@@ -126,13 +126,12 @@ class ApplicationDetailsRequestBodyIntegrationTest extends BaseIntegrationTest {
     }
     MethodParameter parameter = detailsBodyParameter();
 
-    assertThatThrownBy(
-            () ->
-                requestBodyValidator.beforeBodyRead(
-                    inputMessage,
-                    parameter,
-                    parameter.getGenericParameterType(),
-                    JacksonJsonHttpMessageConverter.class))
+    assertThatThrownBy(() ->
+            requestBodyValidator.beforeBodyRead(
+                inputMessage,
+                parameter,
+                parameter.getGenericParameterType(),
+                JacksonJsonHttpMessageConverter.class))
         .isInstanceOf(ApplicationRequestTooLargeException.class);
 
     assertThat(body.bytesRead()).isEqualTo(MAX_BODY_BYTES + 1);

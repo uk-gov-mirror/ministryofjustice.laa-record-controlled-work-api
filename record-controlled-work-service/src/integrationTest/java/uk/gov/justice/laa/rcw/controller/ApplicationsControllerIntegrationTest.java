@@ -909,12 +909,10 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
   void shouldCreateApplication(String niNumber) throws Exception {
 
     CreateApplicationRequestBody request =
-        CreateApplicationRequestGenerator.createWithName(
-            builder ->
-                builder
-                    .providerOfficeCode(TestJwtConfig.AUTHORIZED_OFFICE_CODE)
-                    .scopingQuestions(
-                        ScopingQuestionsGenerator.valid(PriorLegalAid.YES_SAME_MATTER)));
+        CreateApplicationRequestGenerator.createWithName(builder ->
+            builder
+                .providerOfficeCode(TestJwtConfig.AUTHORIZED_OFFICE_CODE)
+                .scopingQuestions(ScopingQuestionsGenerator.valid(PriorLegalAid.YES_SAME_MATTER)));
     request.getClientDetails().setNiNumber(niNumber);
     request.getClientDetails().getAddress().setAddressLine3("");
     request.getClientDetails().getAddress().setAddressLine4("");

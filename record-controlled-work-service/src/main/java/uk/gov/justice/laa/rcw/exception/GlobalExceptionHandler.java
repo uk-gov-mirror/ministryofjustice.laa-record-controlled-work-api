@@ -208,10 +208,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     boolean invalidPagination =
         exception.getConstraintViolations().stream()
             .map(violation -> violation.getPropertyPath().toString().toLowerCase(Locale.ROOT))
-            .anyMatch(
-                path ->
-                    path.contains("getapplications")
-                        && (path.contains(".page") || path.contains(".size")));
+            .anyMatch(path ->
+                path.contains("getapplications")
+                    && (path.contains(".page") || path.contains(".size")));
     if (invalidPagination) {
       return handleApplicationRequestValidation(
           new ApplicationRequestValidationException("INVALID_PAGINATION"), request);

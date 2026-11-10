@@ -176,13 +176,11 @@ class ApplicationUpdateServiceTest {
         .extracting(EditApplicationCommand::geteTag)
         .containsExactly(1L, 2L);
     assertThat(commandCaptor.getAllValues())
-        .allSatisfy(
-            command -> {
-              assertThat(command.getDeclaration().getDateSigned())
-                  .isEqualTo(LocalDate.of(2026, 8, 14));
-              assertThat(command.getDeclaration().getDeclarationConfirmation()).isTrue();
-              assertThat(command.getUfn()).isEqualTo("123456/123");
-            });
+        .allSatisfy(command -> {
+          assertThat(command.getDeclaration().getDateSigned()).isEqualTo(LocalDate.of(2026, 8, 14));
+          assertThat(command.getDeclaration().getDeclarationConfirmation()).isTrue();
+          assertThat(command.getUfn()).isEqualTo("123456/123");
+        });
   }
 
   @Test
@@ -204,10 +202,9 @@ class ApplicationUpdateServiceTest {
         .when(mockApplicationGateway)
         .editApplication(eq(applicationId), any());
 
-    assertThatThrownBy(
-            () ->
-                applicationUpdateService.updateDeclaration(
-                    applicationId, true, LocalDate.of(2026, 8, 14), "123456/123"))
+    assertThatThrownBy(() ->
+            applicationUpdateService.updateDeclaration(
+                applicationId, true, LocalDate.of(2026, 8, 14), "123456/123"))
         .isInstanceOf(ApplicationConflictException.class)
         .hasMessageContaining(applicationId.toString())
         .cause()
@@ -278,10 +275,9 @@ class ApplicationUpdateServiceTest {
                     uk.gov.justice.laa.ia.datastore.client.model.ApplicationState.COMPLETED)
                 .build());
 
-    assertThatThrownBy(
-            () ->
-                applicationUpdateService.updateDeclaration(
-                    applicationId, true, LocalDate.of(2026, 8, 14), "123456/123"))
+    assertThatThrownBy(() ->
+            applicationUpdateService.updateDeclaration(
+                applicationId, true, LocalDate.of(2026, 8, 14), "123456/123"))
         .isInstanceOf(ApplicationConflictException.class)
         .hasMessageContaining(applicationId.toString());
 

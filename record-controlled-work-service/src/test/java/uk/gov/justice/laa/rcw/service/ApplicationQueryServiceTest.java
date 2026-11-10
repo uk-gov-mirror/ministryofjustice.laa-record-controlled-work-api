@@ -274,11 +274,10 @@ class ApplicationQueryServiceTest {
   void shouldCheckNotAlreadyRecorded_throwsConflictException_whenStateIsCompleted() {
     UUID applicationId = UUID.fromString("c3d4e5f6-a7b8-9012-cdef-123456789012");
 
-    assertThatThrownBy(
-            () ->
-                applicationQueryService.checkNotAlreadyRecorded(
-                    applicationId,
-                    uk.gov.justice.laa.ia.datastore.client.model.ApplicationState.COMPLETED))
+    assertThatThrownBy(() ->
+            applicationQueryService.checkNotAlreadyRecorded(
+                applicationId,
+                uk.gov.justice.laa.ia.datastore.client.model.ApplicationState.COMPLETED))
         .isInstanceOf(ApplicationConflictException.class)
         .hasMessageContaining(applicationId.toString());
   }

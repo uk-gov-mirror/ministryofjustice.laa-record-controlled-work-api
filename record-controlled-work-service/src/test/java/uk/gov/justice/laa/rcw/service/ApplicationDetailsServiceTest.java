@@ -93,16 +93,14 @@ class ApplicationDetailsServiceTest {
         .when(mockApplicationGuard)
         .checkVisibleForOffice(APPLICATION_ID, OFFICE_CODE);
 
-    assertThatThrownBy(
-            () ->
-                applicationDetailsService.updateApplicationDetails(
-                    APPLICATION_ID, request, CALLER_VERSION))
+    assertThatThrownBy(() ->
+            applicationDetailsService.updateApplicationDetails(
+                APPLICATION_ID, request, CALLER_VERSION))
         .isInstanceOf(ApplicationNotFoundException.class)
         .hasMessage("No application found with id: " + APPLICATION_ID)
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationNotFoundException) exception).getReason())
-                    .isEqualTo("APPLICATION_NOT_FOUND"));
+        .satisfies(exception ->
+            assertThat(((ApplicationNotFoundException) exception).getReason())
+                .isEqualTo("APPLICATION_NOT_FOUND"));
 
     verify(mockApplicationGateway, times(1)).fetchApplicationDetails(APPLICATION_ID);
     verify(mockApplicationGateway, never())
@@ -116,15 +114,13 @@ class ApplicationDetailsServiceTest {
     when(mockApplicationGateway.fetchApplicationDetails(APPLICATION_ID))
         .thenReturn(application(ApplicationState.COMPLETED));
 
-    assertThatThrownBy(
-            () ->
-                applicationDetailsService.updateApplicationDetails(
-                    APPLICATION_ID, request, CALLER_VERSION))
+    assertThatThrownBy(() ->
+            applicationDetailsService.updateApplicationDetails(
+                APPLICATION_ID, request, CALLER_VERSION))
         .isInstanceOf(ApplicationConflictException.class)
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationConflictException) exception).getReason())
-                    .isEqualTo("APPLICATION_COMPLETED"));
+        .satisfies(exception ->
+            assertThat(((ApplicationConflictException) exception).getReason())
+                .isEqualTo("APPLICATION_COMPLETED"));
 
     verify(mockApplicationGuard).checkVisibleForOffice(APPLICATION_ID, OFFICE_CODE);
     verify(mockApplicationGateway, never())
@@ -141,15 +137,13 @@ class ApplicationDetailsServiceTest {
         .when(mockApplicationGuard)
         .checkVisibleForOffice(APPLICATION_ID, OFFICE_CODE);
 
-    assertThatThrownBy(
-            () ->
-                applicationDetailsService.updateApplicationDetails(
-                    APPLICATION_ID, request, CALLER_VERSION))
+    assertThatThrownBy(() ->
+            applicationDetailsService.updateApplicationDetails(
+                APPLICATION_ID, request, CALLER_VERSION))
         .isExactlyInstanceOf(ApplicationNotFoundException.class)
-        .satisfies(
-            exception ->
-                assertThat(((ApplicationNotFoundException) exception).getReason())
-                    .isEqualTo("APPLICATION_NOT_FOUND"));
+        .satisfies(exception ->
+            assertThat(((ApplicationNotFoundException) exception).getReason())
+                .isEqualTo("APPLICATION_NOT_FOUND"));
 
     verify(mockApplicationGateway, never())
         .editApplication(eq(APPLICATION_ID), any(EditApplicationCommand.class));
@@ -168,10 +162,9 @@ class ApplicationDetailsServiceTest {
         .thenReturn(command);
     when(mockApplicationGateway.editApplication(APPLICATION_ID, command)).thenThrow(failure);
 
-    assertThatThrownBy(
-            () ->
-                applicationDetailsService.updateApplicationDetails(
-                    APPLICATION_ID, request, CALLER_VERSION))
+    assertThatThrownBy(() ->
+            applicationDetailsService.updateApplicationDetails(
+                APPLICATION_ID, request, CALLER_VERSION))
         .isSameAs(failure);
 
     verify(mockApplicationGateway, times(1)).fetchApplicationDetails(APPLICATION_ID);

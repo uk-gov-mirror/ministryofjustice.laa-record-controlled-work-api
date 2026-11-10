@@ -39,15 +39,11 @@ public class ApplicationRequestSchemaConfiguration {
         SchemaRegistry.withDialect(
             Dialects.getOpenApi30(),
             builder -> {
-              builder.schemaLoader(
-                  loader ->
-                      loader.allow(
-                          location ->
-                              SPECIFICATION_LOCATION.equals(location.toString())
-                                  || ("classpath".equals(location.getScheme())
-                                      && location
-                                          .toString()
-                                          .startsWith(VALIDATION_SCHEMA_DIRECTORY))));
+              builder.schemaLoader(loader ->
+                  loader.allow(location ->
+                      SPECIFICATION_LOCATION.equals(location.toString())
+                          || ("classpath".equals(location.getScheme())
+                              && location.toString().startsWith(VALIDATION_SCHEMA_DIRECTORY))));
               builder.schemaRegistryConfig(
                   SchemaRegistryConfig.builder()
                       .formatAssertionsEnabled(true)

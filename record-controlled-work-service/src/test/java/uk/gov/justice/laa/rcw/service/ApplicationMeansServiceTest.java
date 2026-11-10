@@ -132,12 +132,11 @@ class ApplicationMeansServiceTest {
         .when(mockApplicationGateway)
         .updateMeansData(eq(applicationId), any());
 
-    assertThatThrownBy(
-            () ->
-                applicationMeansService.updateMeans(
-                    applicationId,
-                    EligibilityData.builder().build(),
-                    EligibilityCalculationResult.builder().build()))
+    assertThatThrownBy(() ->
+            applicationMeansService.updateMeans(
+                applicationId,
+                EligibilityData.builder().build(),
+                EligibilityCalculationResult.builder().build()))
         .isInstanceOf(ApplicationConflictException.class)
         .hasMessageContaining(applicationId.toString())
         .cause()
@@ -158,12 +157,11 @@ class ApplicationMeansServiceTest {
                 .applicationState(ApplicationState.COMPLETED)
                 .build());
 
-    assertThatThrownBy(
-            () ->
-                applicationMeansService.updateMeans(
-                    applicationId,
-                    EligibilityData.builder().build(),
-                    EligibilityCalculationResult.builder().build()))
+    assertThatThrownBy(() ->
+            applicationMeansService.updateMeans(
+                applicationId,
+                EligibilityData.builder().build(),
+                EligibilityCalculationResult.builder().build()))
         .isInstanceOf(ApplicationConflictException.class)
         .hasMessageContaining(applicationId.toString());
 
@@ -177,12 +175,11 @@ class ApplicationMeansServiceTest {
         .thenReturn(
             ApplicationResponse.builder().eTag(1L).providerOfficeCode("OTHER-OFFICE").build());
 
-    assertThatThrownBy(
-            () ->
-                applicationMeansService.updateMeans(
-                    applicationId,
-                    EligibilityData.builder().build(),
-                    EligibilityCalculationResult.builder().build()))
+    assertThatThrownBy(() ->
+            applicationMeansService.updateMeans(
+                applicationId,
+                EligibilityData.builder().build(),
+                EligibilityCalculationResult.builder().build()))
         .isInstanceOf(ApplicationForbiddenException.class)
         .hasMessageContaining(applicationId.toString());
 
@@ -200,12 +197,11 @@ class ApplicationMeansServiceTest {
                 .build());
     when(mockAuthorizedOfficesProvider.currentAuthorizedOfficeCodes()).thenReturn(List.of());
 
-    assertThatThrownBy(
-            () ->
-                applicationMeansService.updateMeans(
-                    applicationId,
-                    EligibilityData.builder().build(),
-                    EligibilityCalculationResult.builder().build()))
+    assertThatThrownBy(() ->
+            applicationMeansService.updateMeans(
+                applicationId,
+                EligibilityData.builder().build(),
+                EligibilityCalculationResult.builder().build()))
         .isInstanceOf(ApplicationForbiddenException.class)
         .hasMessageContaining(applicationId.toString());
 

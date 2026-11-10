@@ -44,9 +44,8 @@ public final class LogRedactor {
     }
     if (value instanceof Map<?, ?> fields) {
       Map<Object, Object> redacted = new LinkedHashMap<>();
-      fields.forEach(
-          (nestedKey, nestedValue) ->
-              redacted.put(nestedKey, redact(String.valueOf(nestedKey), nestedValue)));
+      fields.forEach((nestedKey, nestedValue) ->
+          redacted.put(nestedKey, redact(String.valueOf(nestedKey), nestedValue)));
       return redacted;
     }
     if (value instanceof Iterable<?> items) {

@@ -109,10 +109,8 @@ class ApplicationPactTest extends AbstractPactTest {
     ApplicationApi client = clientFor(mockServer);
     UUID missingId = UUID.fromString("99999999-9999-9999-9999-999999999999");
 
-    assertThatThrownBy(
-            () ->
-                client.getApplication(
-                    missingId, "Bearer sample-token", CORRELATION_ID, SERVICE_NAME))
+    assertThatThrownBy(() ->
+            client.getApplication(missingId, "Bearer sample-token", CORRELATION_ID, SERVICE_NAME))
         .isInstanceOf(HttpClientErrorException.NotFound.class);
   }
 

@@ -79,10 +79,9 @@ class ApplicationEvidenceServiceTest {
             new ApplicationNotFoundException(
                 "No application found with id: %s".formatted(applicationId)));
 
-    assertThatThrownBy(
-            () ->
-                applicationEvidenceService.updateEvidence(
-                    applicationId, new UpdateEvidenceRequestBody()))
+    assertThatThrownBy(() ->
+            applicationEvidenceService.updateEvidence(
+                applicationId, new UpdateEvidenceRequestBody()))
         .isInstanceOf(ApplicationNotFoundException.class)
         .hasMessageContaining(applicationId.toString());
 
@@ -102,10 +101,9 @@ class ApplicationEvidenceServiceTest {
         .when(mockApplicationGuard)
         .checkAuthorizedForOffice(eq(applicationId), any());
 
-    assertThatThrownBy(
-            () ->
-                applicationEvidenceService.updateEvidence(
-                    applicationId, new UpdateEvidenceRequestBody()))
+    assertThatThrownBy(() ->
+            applicationEvidenceService.updateEvidence(
+                applicationId, new UpdateEvidenceRequestBody()))
         .isInstanceOf(ApplicationForbiddenException.class)
         .hasMessageContaining(applicationId.toString());
 
@@ -124,10 +122,9 @@ class ApplicationEvidenceServiceTest {
                 .applicationState(ApplicationState.COMPLETED)
                 .build());
 
-    assertThatThrownBy(
-            () ->
-                applicationEvidenceService.updateEvidence(
-                    applicationId, new UpdateEvidenceRequestBody()))
+    assertThatThrownBy(() ->
+            applicationEvidenceService.updateEvidence(
+                applicationId, new UpdateEvidenceRequestBody()))
         .isInstanceOf(ApplicationConflictException.class)
         .hasMessageContaining(applicationId.toString());
 
@@ -151,10 +148,9 @@ class ApplicationEvidenceServiceTest {
         .when(mockApplicationGateway)
         .updateEvidence(eq(applicationId), any());
 
-    assertThatThrownBy(
-            () ->
-                applicationEvidenceService.updateEvidence(
-                    applicationId, new UpdateEvidenceRequestBody()))
+    assertThatThrownBy(() ->
+            applicationEvidenceService.updateEvidence(
+                applicationId, new UpdateEvidenceRequestBody()))
         .isInstanceOf(ApplicationBadRequestException.class)
         .hasMessageContaining(applicationId.toString());
   }

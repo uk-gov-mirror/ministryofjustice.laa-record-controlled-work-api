@@ -45,11 +45,10 @@ class ApplicationGuardTest {
     assertThatThrownBy(() -> applicationGuard.checkVisibleForOffice(APPLICATION_ID, "AB12CD"))
         .isExactlyInstanceOf(ApplicationNotFoundException.class)
         .hasMessage("No application found with id: " + APPLICATION_ID)
-        .satisfies(
-            exception ->
-                org.assertj.core.api.Assertions.assertThat(
-                        ((ApplicationNotFoundException) exception).getReason())
-                    .isEqualTo("APPLICATION_NOT_FOUND"));
+        .satisfies(exception ->
+            org.assertj.core.api.Assertions.assertThat(
+                    ((ApplicationNotFoundException) exception).getReason())
+                .isEqualTo("APPLICATION_NOT_FOUND"));
   }
 
   @Test

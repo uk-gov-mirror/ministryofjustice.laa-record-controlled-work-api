@@ -71,9 +71,8 @@ public class ApplicationController implements ApplicationsApi {
   public ResponseEntity<Application> getApplication(UUID id) {
     return applicationQueryService
         .getApplication(id)
-        .map(
-            result ->
-                ResponseEntity.ok().eTag("\"" + result.version() + "\"").body(result.application()))
+        .map(result ->
+            ResponseEntity.ok().eTag("\"" + result.version() + "\"").body(result.application()))
         .orElse(ResponseEntity.notFound().build());
   }
 

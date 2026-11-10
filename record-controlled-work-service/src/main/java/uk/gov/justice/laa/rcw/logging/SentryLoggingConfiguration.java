@@ -81,16 +81,15 @@ public class SentryLoggingConfiguration {
         Map<String, SentryLogEventAttributeValue> attributes = new LinkedHashMap<>();
         event
             .getAttributes()
-            .forEach(
-                (key, attribute) -> {
-                  Object value = attribute == null ? null : attribute.getValue();
-                  Object redacted = LogRedactor.redact(key, value);
-                  attributes.put(
-                      key,
-                      redacted == value
-                          ? attribute
-                          : new SentryLogEventAttributeValue("string", redacted));
-                });
+            .forEach((key, attribute) -> {
+              Object value = attribute == null ? null : attribute.getValue();
+              Object redacted = LogRedactor.redact(key, value);
+              attributes.put(
+                  key,
+                  redacted == value
+                      ? attribute
+                      : new SentryLogEventAttributeValue("string", redacted));
+            });
         event.setAttributes(attributes);
       }
 
