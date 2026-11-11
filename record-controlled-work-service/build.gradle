@@ -131,7 +131,7 @@ dependencies {
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    pactTestImplementation 'au.com.dius.pact.consumer:junit5:4.7.6'
+    pactTestImplementation 'au.com.dius.pact.consumer:junit5:4.7.7'
 
     // au.com.dius.pact.consumer:junit5 pulls in io.pact.plugin.driver:core, which (even at its
     // latest release) still pins vulnerable transitive versions of bouncycastle and netty.
