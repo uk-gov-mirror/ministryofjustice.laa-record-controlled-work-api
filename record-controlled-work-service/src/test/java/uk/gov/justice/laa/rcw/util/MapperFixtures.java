@@ -13,6 +13,10 @@ import uk.gov.justice.laa.rcw.mapper.EvidenceMapperImpl;
 import uk.gov.justice.laa.rcw.mapper.JsonNullableMapper;
 import uk.gov.justice.laa.rcw.mapper.JsonNullableMapperImpl;
 import uk.gov.justice.laa.rcw.mapper.ScopingQuestionsMapperImpl;
+import uk.gov.justice.laa.rcw.resolvers.means.FamilyLawMeansExemptionResolver;
+import uk.gov.justice.laa.rcw.resolvers.means.MeansExemptionResolver;
+import uk.gov.justice.laa.rcw.resolvers.means.PrivateFamilyMeansExemptionCalculator;
+import uk.gov.justice.laa.rcw.resolvers.means.PublicFamilyMeansExemptionCalculator;
 
 /** Constructs generated mapper graphs for unit tests. */
 public final class MapperFixtures {
@@ -54,6 +58,10 @@ public final class MapperFixtures {
         new EligibilityMapperImpl(nullableMapper),
         new EvidenceMapperImpl(),
         new ScopingQuestionsMapperImpl(),
+        new MeansExemptionResolver(
+            new FamilyLawMeansExemptionResolver(
+                new PublicFamilyMeansExemptionCalculator(),
+                new PrivateFamilyMeansExemptionCalculator())),
         nullableMapper);
   }
 }

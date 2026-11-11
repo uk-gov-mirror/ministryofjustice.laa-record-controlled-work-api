@@ -347,6 +347,7 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
             "eTag": 31,
             "reasonForReapplication": null,
             "ecfFlag": true,
+            "meansAssessmentRequired": true,
             "scopingQuestions": {
                 "priorLegalAid": "no",
                 "familyLawClassification": "public",
@@ -425,6 +426,7 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
                         "eTag": 31,
                         "reasonForReapplication": null,
                           "ecfFlag": true,
+                        "meansAssessmentRequired": true,
                         "scopingQuestions": {
                             "priorLegalAid": "no",
                             "familyLawClassification": "public",
@@ -535,6 +537,8 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
         .andExpect(jsonPath("$.id").value(id))
         .andExpect(jsonPath("$.ecfFlag").value(nullValue()))
         .andExpect(jsonPath("$.scopingQuestions.priorLegalAid").value(nullValue()))
+        .andExpect(jsonPath("$.meansAssessmentRequired").isBoolean())
+        .andExpect(jsonPath("$.meansAssessmentRequired").value(true))
         .andExpect(jsonPath("$.eTag").doesNotExist());
 
     DATASTORE.verify(
@@ -583,6 +587,60 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
     DATASTORE.verify(1, getRequestedFor(urlPathEqualTo("/api/v0/applications/" + id)));
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"DRAFT", "COMPLETED"})
+  void shouldReturnPersistedRequirementWithoutDerivingFromAnswersOrMutating(String state)
+      throws Exception {
+    String id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    String path = "/api/v0/applications/" + id;
+    String scenario = "changed-family-answers";
+    for (boolean maintenanceAdvice : new boolean[] {false, true}) {
+      DATASTORE.stubFor(
+          WireMock.get(urlPathEqualTo(path))
+              .inScenario(scenario)
+              .whenScenarioStateIs(maintenanceAdvice ? "updated" : Scenario.STARTED)
+              .willSetStateTo("updated")
+              .willReturn(
+                  okJson(
+                      """
+                      {
+                        "id": "%s",
+                        "providerOfficeCode": "%s",
+                        "applicationState": "%s",
+                        "eTag": 5,
+                        "modifiedAt": "2026-01-01T10:00:00Z",
+                        "meansAssessmentRequired": %s,
+                        "isMeansTested": %s,
+                        "scopingQuestions": {
+                          "familyLawClassification": "private",
+                          "needsAdviceOnEUOrInternationalMaintenance": %s
+                        }
+                      }
+                      """
+                          .formatted(
+                              id,
+                              TestJwtConfig.AUTHORIZED_OFFICE_CODE,
+                              state,
+                              maintenanceAdvice,
+                              maintenanceAdvice,
+                              maintenanceAdvice))));
+    }
+
+    for (boolean expectedRequired : new boolean[] {false, true}) {
+      mockMvc
+          .perform(get("/api/v1/applications/{id}", id).withBearerReadToken())
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.meansAssessmentRequired").isBoolean())
+          .andExpect(jsonPath("$.meansAssessmentRequired").value(expectedRequired))
+          .andExpect(jsonPath("$.applicationState").value(state))
+          .andExpect(jsonPath("$.modifiedAt").value("2026-01-01T10:00:00Z"))
+          .andExpect(header().string("ETag", "\"5\""));
+    }
+
+    DATASTORE.verify(2, getRequestedFor(urlPathEqualTo(path)));
+    DATASTORE.verify(2, WireMock.anyRequestedFor(WireMock.urlMatching("/api/v0/.*")));
+  }
+
   @Test
   void shouldGetApplication() throws Exception {
     String applicationId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
@@ -628,6 +686,8 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
             jsonPath("$.individualLegalAidNumber").value("ebd50ba0-9ed9-4003-83a8-c11ac07d9e32"))
         .andExpect(jsonPath("$.applicationRefNumber").value("CW-111111"))
         .andExpect(jsonPath("$.ufn").value("123456/123"))
+        .andExpect(jsonPath("$.meansAssessmentRequired").isBoolean())
+        .andExpect(jsonPath("$.meansAssessmentRequired").value(true))
         .andExpect(jsonPath("$.scopingQuestions.priorLegalAid").value("yesSameMatter"))
         .andExpect(jsonPath("$.scopingQuestions.familyLawClassification").value("private"))
         .andExpect(
@@ -913,6 +973,9 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
             builder
                 .providerOfficeCode(TestJwtConfig.AUTHORIZED_OFFICE_CODE)
                 .scopingQuestions(ScopingQuestionsGenerator.valid(PriorLegalAid.YES_SAME_MATTER)));
+    request.getScopingQuestions().setNeedsAdviceOnEUOrInternationalMaintenance(true);
+    request.getScopingQuestions().setNeedsProtectiveInjunction(null);
+    request.getScopingQuestions().setLaspoEvidenceScope(null);
     request.getClientDetails().setNiNumber(niNumber);
     request.getClientDetails().getAddress().setAddressLine3("");
     request.getClientDetails().getAddress().setAddressLine4("");
@@ -984,7 +1047,8 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
                     "Location",
                     org.hamcrest.Matchers.endsWith("/api/v1/applications/" + applicationId)))
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.id").value(applicationId));
+        .andExpect(jsonPath("$.id").value(applicationId))
+        .andExpect(jsonPath("$.meansAssessmentRequired").doesNotExist());
 
     DATASTORE.verify(
         postRequestedFor(urlPathEqualTo("/api/v0/applications:start-application"))
@@ -1034,16 +1098,16 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
                         "eTag": 0,
                         "reasonForReapplication": "",
                         "ecfFlag": false,
+                        "meansAssessmentRequired": false,
                         "scopingQuestions": {
                             "priorLegalAid": "yesSameMatter",
                             "familyLawClassification": "private",
-                            "needsAdviceOnEUOrInternationalMaintenance": false,
-                            "needsProtectiveInjunction": false,
-                            "laspoEvidenceScope": "domesticAbuse",
+                            "needsAdviceOnEUOrInternationalMaintenance": true,
                             "caseMeetsMeritsCriteria": true
                         }
                     }
                     """)));
+    DATASTORE.verify(0, getRequestedFor(WireMock.urlMatching("/api/v0/.*")));
   }
 
   @Test
@@ -1318,6 +1382,7 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
                       "eTag": 31,
                       "reasonForReapplication": null,
                       "ecfFlag": true,
+                      "meansAssessmentRequired": true,
                                             "scopingQuestions": {
                                                 "priorLegalAid": "no",
                                                 "familyLawClassification": "public",

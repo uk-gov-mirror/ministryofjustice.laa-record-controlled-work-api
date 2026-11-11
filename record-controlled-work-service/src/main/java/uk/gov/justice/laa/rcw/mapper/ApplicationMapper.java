@@ -20,6 +20,7 @@ import uk.gov.justice.laa.rcw.model.ApplicationOverview;
 import uk.gov.justice.laa.rcw.model.ApplicationState;
 import uk.gov.justice.laa.rcw.model.CreateApplicationRequestBody;
 import uk.gov.justice.laa.rcw.model.UpdateApplicationDetailsRequestBody;
+import uk.gov.justice.laa.rcw.resolvers.means.MeansExemptionResolver;
 
 /** The mapper between the datastore's application models and the RCW API's own models. */
 @Mapper(
@@ -30,6 +31,7 @@ import uk.gov.justice.laa.rcw.model.UpdateApplicationDetailsRequestBody;
       EligibilityMapper.class,
       EvidenceMapper.class,
       ScopingQuestionsMapper.class,
+      MeansExemptionResolver.class,
       JsonNullableMapper.class
     },
     injectionStrategy = InjectionStrategy.CONSTRUCTOR)
@@ -55,6 +57,7 @@ public interface ApplicationMapper {
   @Mapping(target = "evidence", source = "evidence")
   @Mapping(target = "meansAssessmentId", ignore = true)
   @Mapping(target = "applicationRefNumber", source = "referenceNumber")
+  @Mapping(target = "meansAssessmentRequired", defaultValue = "true")
   Application toApplication(ApplicationResponse applicationResponse);
 
   /** Joins the client's first and last name, skipping any that are null. */
@@ -122,6 +125,10 @@ public interface ApplicationMapper {
       target = "scopingQuestions",
       source = "request.scopingQuestions",
       qualifiedByName = "toDatastoreScopingQuestionsFromDetails")
+  @Mapping(
+      target = "meansAssessmentRequired",
+      source = "request.scopingQuestions",
+      qualifiedByName = "fromSubmittedScopingQuestions")
   EditApplicationCommand toEditApplicationCommand(
       UpdateApplicationDetailsRequestBody request, long version);
 
@@ -150,6 +157,10 @@ public interface ApplicationMapper {
       target = "scopingQuestions",
       source = "request.scopingQuestions",
       qualifiedByName = "toDatastoreScopingQuestions")
+  @Mapping(
+      target = "meansAssessmentRequired",
+      source = "request.scopingQuestions",
+      qualifiedByName = "fromSubmittedScopingQuestions")
   @Mapping(
       target = "ecfFlag_JsonNullable",
       source = "request.ecfFlag",

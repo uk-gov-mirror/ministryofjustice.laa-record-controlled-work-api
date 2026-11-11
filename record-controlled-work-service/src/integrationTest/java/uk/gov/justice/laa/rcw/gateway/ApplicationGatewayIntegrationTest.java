@@ -447,6 +447,7 @@ class ApplicationGatewayIntegrationTest extends BaseIntegrationTest {
                       "eTag": 31,
                       "reasonForReapplication": null,
                       "ecfFlag": false,
+                      "meansAssessmentRequired": true,
                       "scopingQuestions": {
                         "priorLegalAid": "no",
                         "familyLawClassification": "private",

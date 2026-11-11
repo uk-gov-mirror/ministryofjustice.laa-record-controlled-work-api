@@ -119,6 +119,7 @@ class ApplicationDetailsIntegrationTest extends BaseIntegrationTest {
                         "eTag": 31,
                         "reasonForReapplication": null,
                         "ecfFlag": true,
+                        "meansAssessmentRequired": true,
                         "scopingQuestions": {
                             "priorLegalAid": "no",
                             "familyLawClassification": "private",

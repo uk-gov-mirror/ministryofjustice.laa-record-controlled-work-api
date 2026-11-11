@@ -666,6 +666,7 @@ components:
         - scopingQuestions
         - applicationType
         - ecfFlag
+        - meansAssessmentRequired
       properties:
         id:
           type: string
@@ -711,7 +712,12 @@ components:
           nullable: true
         meansAssessmentRequired:
           type: boolean
-          nullable: true
+          readOnly: true
+          description: >-
+            Whether a means assessment is required. Calculated and saved when family scoping
+            answers are submitted, and read from the saved decision on GET. Defaults to true for
+            older applications without a saved decision. This is not an eligibility indication
+            or confirmation that scoping is complete.
         typeOfNonMeans:
           type: boolean
           nullable: true

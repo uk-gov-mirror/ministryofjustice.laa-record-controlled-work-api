@@ -42,6 +42,55 @@ class ApplicationMapperTest {
   private final ApplicationMapper applicationMapper = MapperFixtures.applicationMapper();
 
   @Test
+  void shouldReturnPersistedRequirementDespiteConflictingScopingAnswers() {
+    ApplicationResponse response =
+        ApplicationResponse.builder()
+            .meansAssessmentRequired(true)
+            .isMeansTested(true)
+            .scopingQuestions(
+                Map.of(
+                    "familyLawClassification",
+                    "private",
+                    "needsAdviceOnEUOrInternationalMaintenance",
+                    true))
+            .build();
+
+    assertThat(applicationMapper.toApplication(response).getMeansAssessmentRequired()).isTrue();
+  }
+
+  @Test
+  void shouldDefaultToRequiredWhenPersistedFlagIsMissing() {
+    ApplicationResponse response =
+        ApplicationResponse.builder()
+            .isMeansTested(false)
+            .scopingQuestions(
+                Map.of(
+                    "familyLawClassification",
+                    "private",
+                    "needsAdviceOnEUOrInternationalMaintenance",
+                    true))
+            .build();
+
+    assertThat(applicationMapper.toApplication(response).getMeansAssessmentRequired()).isTrue();
+  }
+
+  @Test
+  void shouldReturnPersistedExemptionForUnrecognizedClassification() {
+    ApplicationResponse response =
+        ApplicationResponse.builder()
+            .meansAssessmentRequired(false)
+            .scopingQuestions(
+                Map.of(
+                    "familyLawClassification", "legacy",
+                    "needsAdviceOnEUOrInternationalMaintenance", true,
+                    "careProceedingsStarted", true,
+                    "careProceedingsParentalResponsibility", true))
+            .build();
+
+    assertThat(applicationMapper.toApplication(response).getMeansAssessmentRequired()).isFalse();
+  }
+
+  @Test
   void shouldMapApplicationSummaryToApplicationOverview() {
     ApplicationSummary applicationSummary =
         ApplicationSummary.builder()
@@ -307,7 +356,30 @@ class ApplicationMapperTest {
         .containsEntry("familyLawClassification", "private")
         .containsEntry("needsAdviceOnEUOrInternationalMaintenance", false)
         .containsEntry("needsProtectiveInjunction", false);
+    assertThat(result.getMeansAssessmentRequired()).isTrue();
     assertThat(result.getClientDetails()).isNull();
+  }
+
+  @Test
+  void shouldSaveExemptionFromCreateScopingAnswers() {
+    var request = CreateApplicationRequestGenerator.createWithName(null);
+    request.getScopingQuestions().setNeedsAdviceOnEUOrInternationalMaintenance(true);
+
+    EditApplicationCommand result =
+        applicationMapper.toEditApplicationCommandFromCreate(request, 5L);
+
+    assertThat(result.getMeansAssessmentRequired()).isFalse();
+  }
+
+  @Test
+  void shouldSaveUpdatedExemptionFromDetailsScopingAnswers() {
+    UpdateApplicationDetailsRequestBody request =
+        fixedAddressRequest("GB", "", PriorLegalAid.NO, false, null);
+    request.getScopingQuestions().setNeedsAdviceOnEUOrInternationalMaintenance(true);
+
+    EditApplicationCommand result = applicationMapper.toEditApplicationCommand(request, 19L);
+
+    assertThat(result.getMeansAssessmentRequired()).isFalse();
   }
 
   @Test
@@ -323,7 +395,7 @@ class ApplicationMapperTest {
     assertThat(result.getScopingQuestions_JsonNullable().isPresent()).isTrue();
     assertThat(result.getUfn()).isNull();
     assertThat(result.getLaaReference()).isNull();
-    assertThat(result.getMeansAssessmentRequired()).isNull();
+    assertThat(result.getMeansAssessmentRequired()).isTrue();
     assertThat(result.getTypeOfNonMeans()).isNull();
     assertThat(result.getContribution()).isNull();
     assertThat(result.getDeterminationId()).isNull();
