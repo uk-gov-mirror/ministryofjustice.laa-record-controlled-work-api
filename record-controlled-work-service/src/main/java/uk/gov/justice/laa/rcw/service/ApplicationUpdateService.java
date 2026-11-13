@@ -4,6 +4,7 @@ import static uk.gov.justice.laa.rcw.logging.LogAction.APPLICATION_DECLARATION_U
 import static uk.gov.justice.laa.rcw.logging.LogAction.APPLICATION_STATUS_UPDATE;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import uk.gov.justice.laa.ia.datastore.client.model.EditApplicationCommand;
 import uk.gov.justice.laa.ia.datastore.client.model.PatchDeclarationData;
 import uk.gov.justice.laa.ia.datastore.client.model.UpdateApplicationCommand;
 import uk.gov.justice.laa.rcw.exception.ApplicationConflictException;
+import uk.gov.justice.laa.rcw.exception.ApplicationRequestValidationException;
 import uk.gov.justice.laa.rcw.gateway.ApplicationGateway;
 import uk.gov.justice.laa.rcw.logging.StructuredLogger;
 import uk.gov.justice.laa.rcw.mapper.ApplicationMapper;
@@ -44,6 +46,9 @@ public class ApplicationUpdateService {
     ApplicationResponse application = applicationGateway.fetchApplication(applicationId);
     applicationGuard.checkAuthorizedForOffice(applicationId, application.getProviderOfficeCode());
     checkNotAlreadyRecorded(applicationId, application.getApplicationState());
+    if (status == ApplicationState.COMPLETED) {
+      checkSubmissionData(application);
+    }
     UpdateApplicationCommand command =
         UpdateApplicationCommand.builder()
             .eTag(application.geteTag())
@@ -123,6 +128,22 @@ public class ApplicationUpdateService {
         .outcome("success")
         .with("application.id", applicationId)
         .log("Updated declaration for application {}", applicationId);
+  }
+
+  private void checkSubmissionData(ApplicationResponse application) {
+    if (application.getClient() == null
+        || !(application.getScopingQuestions() instanceof Map<?, ?> scopingQuestions)
+        || scopingQuestions.get("familyLawClassification") == null
+        || application.getDeclaration() == null) {
+      throw new ApplicationRequestValidationException("APPLICATION_INCOMPLETE");
+    }
+
+    if (!Boolean.FALSE.equals(application.getMeansAssessmentRequired())
+        && (application.getEligibilityAssessment() == null
+            || application.getEligibilityAssessment().getData() == null
+            || application.getEvidence() == null)) {
+      throw new ApplicationRequestValidationException("APPLICATION_INCOMPLETE");
+    }
   }
 
   private void checkNotAlreadyRecorded(

@@ -21,6 +21,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -2216,22 +2219,115 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
     DATASTORE.verify(2, patchRequestedFor(urlPathEqualTo(updateDeclarationPath)));
   }
 
+  @ParameterizedTest
+  @CsvSource(
+      value = {
+        "client,true",
+        "scopingQuestions,true",
+        "eligibilityAssessment,true",
+        "meansData,true",
+        "evidence,true",
+        "declaration,true",
+        "client,false",
+        "scopingQuestions,false",
+        "declaration,false",
+        "eligibilityAssessment,null",
+        "meansData,null",
+        "evidence,null"
+      },
+      nullValues = "null")
+  void shouldNotUpdateApplicationStatus_whenRequiredSubmissionDataMissing(
+      String missingSection, Boolean meansAssessmentRequired) throws Exception {
+    String applicationId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    String applicationPath = "/api/v0/applications/" + applicationId;
+    ObjectNode application = submissionReadyApplication(applicationId);
+    application.put("meansAssessmentRequired", meansAssessmentRequired);
+    if ("meansData".equals(missingSection)) {
+      ((ObjectNode) application.get("eligibilityAssessment")).remove("data");
+    } else {
+      application.remove(missingSection);
+    }
+    DATASTORE.stubFor(
+        WireMock.get(urlPathEqualTo(applicationPath)).willReturn(okJson(application.toString())));
+
+    mockMvc
+        .perform(
+            patch("/api/v1/applications/{id}/status", applicationId)
+                .withBearerWriteToken()
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"applicationState\":\"COMPLETED\",\"eTag\":5}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+        .andExpect(jsonPath("$.reason").value("APPLICATION_INCOMPLETE"));
+
+    DATASTORE.verify(1, getRequestedFor(urlPathEqualTo(applicationPath)));
+    DATASTORE.verify(0, patchRequestedFor(urlPathEqualTo(applicationPath + ":update-application")));
+  }
+
+  @Test
+  void shouldUpdateApplicationStatus_whenMeansAssessmentExempt() throws Exception {
+    String applicationId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    final String applicationPath = "/api/v0/applications/" + applicationId;
+    ObjectNode application = submissionReadyApplication(applicationId);
+    application.put("meansAssessmentRequired", false);
+    application.remove("eligibilityAssessment");
+    application.remove("evidence");
+    DATASTORE.stubFor(
+        WireMock.get(urlPathEqualTo(applicationPath)).willReturn(okJson(application.toString())));
+    DATASTORE.stubFor(
+        WireMock.patch(urlPathEqualTo(applicationPath + ":update-application"))
+            .willReturn(WireMock.noContent()));
+
+    mockMvc
+        .perform(
+            patch("/api/v1/applications/{id}/status", applicationId)
+                .withBearerWriteToken()
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"applicationState\":\"COMPLETED\",\"eTag\":5}"))
+        .andExpect(status().isNoContent());
+
+    DATASTORE.verify(
+        1,
+        patchRequestedFor(urlPathEqualTo(applicationPath + ":update-application"))
+            .withRequestBody(equalToJson("{\"applicationState\":\"COMPLETED\",\"eTag\":5}")));
+  }
+
+  @Test
+  void shouldUpdateApplicationStatus_whenDraftHasNoSubmissionData() throws Exception {
+    String applicationId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+    String applicationPath = "/api/v0/applications/" + applicationId;
+    DATASTORE.stubFor(
+        WireMock.get(urlPathEqualTo(applicationPath))
+            .willReturn(
+                okJson(
+                    """
+                    {"eTag":5,"providerOfficeCode":"%s","applicationState":"DRAFT"}
+                    """
+                        .formatted(TestJwtConfig.AUTHORIZED_OFFICE_CODE))));
+    DATASTORE.stubFor(
+        WireMock.patch(urlPathEqualTo(applicationPath + ":update-application"))
+            .willReturn(WireMock.noContent()));
+
+    mockMvc
+        .perform(
+            patch("/api/v1/applications/{id}/status", applicationId)
+                .withBearerWriteToken()
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"applicationState\":\"DRAFT\",\"eTag\":5}"))
+        .andExpect(status().isNoContent());
+
+    DATASTORE.verify(
+        1,
+        patchRequestedFor(urlPathEqualTo(applicationPath + ":update-application"))
+            .withRequestBody(equalToJson("{\"applicationState\":\"DRAFT\",\"eTag\":5}")));
+  }
+
   @Test
   void shouldUpdateApplicationStatus_fetchesETagAndPersistsStatus() throws Exception {
     String applicationId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
     DATASTORE.stubFor(
         WireMock.get(urlPathEqualTo("/api/v0/applications/" + applicationId))
-            .willReturn(
-                okJson(
-                    """
-                    {
-                        "id": "%s",
-                        "eTag": 5,
-                        "providerOfficeCode": "%s",
-                        "applicationState": "DRAFT"
-                    }
-                    """
-                        .formatted(applicationId, TestJwtConfig.AUTHORIZED_OFFICE_CODE))));
+            .willReturn(okJson(submissionReadyApplication(applicationId).toString())));
     DATASTORE.stubFor(
         WireMock.patch(
                 urlPathEqualTo("/api/v0/applications/" + applicationId + ":update-application"))
@@ -2299,17 +2395,7 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
     String applicationId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
     DATASTORE.stubFor(
         WireMock.get(urlPathEqualTo("/api/v0/applications/" + applicationId))
-            .willReturn(
-                okJson(
-                    """
-                    {
-                        "id": "%s",
-                        "eTag": 5,
-                        "providerOfficeCode": "%s",
-                        "applicationState": "DRAFT"
-                    }
-                    """
-                        .formatted(applicationId, TestJwtConfig.AUTHORIZED_OFFICE_CODE))));
+            .willReturn(okJson(submissionReadyApplication(applicationId).toString())));
     DATASTORE.stubFor(
         WireMock.patch(
                 urlPathEqualTo("/api/v0/applications/" + applicationId + ":update-application"))
@@ -2331,6 +2417,27 @@ class ApplicationsControllerIntegrationTest extends BaseIntegrationTest {
         2,
         patchRequestedFor(
             urlPathEqualTo("/api/v0/applications/" + applicationId + ":update-application")));
+  }
+
+  private static ObjectNode submissionReadyApplication(String applicationId) throws Exception {
+    return (ObjectNode)
+        new ObjectMapper()
+            .readTree(
+                """
+                {
+                    "id": "%s",
+                    "eTag": 5,
+                    "providerOfficeCode": "%s",
+                    "applicationState": "DRAFT",
+                    "client": {},
+                    "scopingQuestions": {"familyLawClassification": "private"},
+                    "meansAssessmentRequired": true,
+                    "eligibilityAssessment": {"data": {}},
+                    "evidence": {},
+                    "declaration": {}
+                }
+                """
+                    .formatted(applicationId, TestJwtConfig.AUTHORIZED_OFFICE_CODE));
   }
 
   @Test
